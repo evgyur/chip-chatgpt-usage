@@ -10,3 +10,7 @@ Public OpenClaw skill for tracking ChatGPT Pro usage windows (5h/Week) and forec
 ## License
 
 MIT
+
+## Example
+
+![Usage report example](assets/usage-report-example.jpg)
