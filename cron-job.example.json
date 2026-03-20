@@ -8,7 +8,7 @@
   "payload": {
     "kind": "agentTurn",
     "thinking": "low",
-    "message": "Запусти ровно эту команду и верни строго её stdout, без добавлений и без пересказа:\n\npython3 /opt/clawd-workspace/skills/public/chip-chatgpt-usage/scripts/report.py --format telegram\n\nПравила:\n1) Не используй `session_status`, браузер, web, memory или рассуждения как источник отчёта.\n2) Не пересобирай отчёт сам — источник истины только stdout скрипта.\n3) Если stdout ровно `NO_REPLY`, ответь ровно `NO_REPLY`.\n4) Если команда завершилась с ошибкой — ответь ровно `NO_REPLY`."
+    "message": "Выполни ровно эти команды и верни строго stdout второй команды, без добавлений и без пересказа:\n\npython3 /opt/clawd-workspace/skills/public/chip-chatgpt-usage/scripts/update_source.py\npython3 /opt/clawd-workspace/skills/public/chip-chatgpt-usage/scripts/report.py --format telegram\n\nПравила:\n1) Не используй `session_status`, браузер, web, memory или рассуждения как источник отчёта.\n2) Не пересобирай отчёт сам — источник истины только stdout `report.py`.\n3) Если `update_source.py` вернул `NO_SOURCE`, ответь ровно `NO_REPLY`.\n4) Если stdout `report.py` ровно `NO_REPLY`, ответь ровно `NO_REPLY`.\n5) Если любая команда завершилась с ошибкой — ответь ровно `NO_REPLY`."
   },
   "delivery": {
     "mode": "announce",

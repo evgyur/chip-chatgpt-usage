@@ -28,9 +28,10 @@ metadata:
 
 ## Что входит в skill
 
+- `scripts/update_source.py` — updater source snapshot → `state/source.json`
 - `scripts/report.py` — единственный генератор отчёта
 - `state/source.schema.example.json` — пример source snapshot schema
-- `cron-job.example.json` — безопасный cron prompt, который требует запускать скрипт, а не сочинять отчёт
+- `cron-job.example.json` — безопасный cron prompt, который требует запускать updater + report, а не сочинять отчёт
 
 ## Source contract
 

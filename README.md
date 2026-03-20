@@ -10,7 +10,8 @@ Before:
 - source routing drifted into `session_status`, browser attempts, or generic reasoning
 
 Now:
-- one script: `scripts/report.py`
+- one updater: `scripts/update_source.py`
+- one reporter: `scripts/report.py`
 - one explicit source snapshot schema
 - fail-closed behavior (`NO_REPLY` if no source snapshot)
 - forbidden fallback to `session_status`
