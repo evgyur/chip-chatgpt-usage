@@ -1,15 +1,32 @@
 # chip-chatgpt-usage
 
-Public OpenClaw skill for tracking ChatGPT Pro usage windows (5h/Week) and forecasting weekly limit exhaustion.
+Script-first OpenClaw skill for ChatGPT Pro usage reporting (5h/Week).
 
-## Contents
+## What changed
 
-- `SKILL.md` — full usage guide
-- `cron-job.example.json` — ready-to-use cron payload template
+Before:
+- docs-only skill
+- cron prompt asked the model to improvise a report
+- source routing drifted into `session_status`, browser attempts, or generic reasoning
 
-## License
+Now:
+- one script: `scripts/report.py`
+- one explicit source snapshot schema
+- fail-closed behavior (`NO_REPLY` if no source snapshot)
+- forbidden fallback to `session_status`
 
-MIT
+## Files
+
+- `SKILL.md`
+- `cron-job.example.json`
+- `scripts/report.py`
+- `state/source.schema.example.json`
+- `assets/usage-report-example.jpg`
+
+## Contract
+
+The model must not invent the report.
+It must run the script and return exact stdout.
 
 ## Example
 

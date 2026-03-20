@@ -1,5 +1,5 @@
 {
-  "name": "Usage остатки в личку каждые 3 часа",
+  "name": "ChatGPT Pro usage в личку (script-first)",
   "schedule": {
     "kind": "every",
     "everyMs": 10800000
@@ -8,7 +8,7 @@
   "payload": {
     "kind": "agentTurn",
     "thinking": "low",
-    "message": "Сделай session_status и отправь Chip в личку профессиональный отчёт с эмодзи в формате:\n\n📊 ChatGPT Pro подписка: Отчёт по использованию\n- ⏱️ 5h window: осталось X% (≈Y)\n- 📆 Week window: осталось X%, до сброса ≈Y (дата/время МСК)\n\n🔮 Прогноз по неделе (линейная модель):\n- рассчитывай: окно Week=7 суток; elapsed=7d-time_to_week_reset; used=1-week_left; rate=used/elapsed; eta_exhaust=week_left/rate\n- выведи ориентировочную дату/время исчерпания в МСК\n\n⚠️ Вывод:\n- если eta_exhaust <= time_to_week_reset: «с высокой вероятностью недельный лимит закончится до сброса» + запас по времени\n- иначе: «по текущему темпу недельный лимит не закончится до сброса»\n\nПиши коротко, 5–8 строк, без лишнего текста."
+    "message": "Запусти ровно эту команду и верни строго её stdout, без добавлений и без пересказа:\n\npython3 /opt/clawd-workspace/skills/public/chip-chatgpt-usage/scripts/report.py --format telegram\n\nПравила:\n1) Не используй `session_status`, браузер, web, memory или рассуждения как источник отчёта.\n2) Не пересобирай отчёт сам — источник истины только stdout скрипта.\n3) Если stdout ровно `NO_REPLY`, ответь ровно `NO_REPLY`.\n4) Если команда завершилась с ошибкой — ответь ровно `NO_REPLY`."
   },
   "delivery": {
     "mode": "announce",

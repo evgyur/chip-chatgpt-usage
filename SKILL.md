@@ -1,6 +1,6 @@
 ---
 name: chip-chatgpt-usage
-description: "Публичный скилл: мониторинг остатков ChatGPT Pro (5h/Week) с прогнозом исчерпания недельного лимита и авто-отправкой в Telegram DM через cron."
+description: "Публичный скилл: script-first мониторинг ChatGPT Pro usage (5h/Week) без модельных догадок; отчёт строится только скриптом из source snapshot."
 metadata:
   clawdbot:
     emoji: 📊
@@ -9,41 +9,87 @@ metadata:
 
 # chip-chatgpt-usage
 
-Публичный скилл для OpenClaw: регулярный отчёт по Usage (5h/Week) + прогноз, когда закончится недельный лимит при текущем темпе.
+Это **script-first** skill. Модель не должна придумывать usage-report из общих рассуждений, `session_status`, браузера или других эвристик.
 
-## Что делает
+## Root cause, который этот skill закрывает
 
-- Берёт данные из `session_status` (те же, что показывает `/status`).
-- Формирует отчёт в профессиональном формате с эмодзи.
-- Считает линейный прогноз исчерпания Week-window:
-  - `elapsed = 7d - time_to_week_reset`
-  - `used = 1 - week_left`
-  - `rate = used / elapsed`
-  - `eta_exhaust = week_left / rate`
-- Отправляет в личку по расписанию (`cron`, isolated agentTurn).
+Старая версия skill была **docs-only**:
+- cron запускал agentTurn с текстовым prompt;
+- модель сама решала, откуда брать данные;
+- иногда подставляла `session_status` OpenClaw;
+- иногда начинала искать браузер/UI;
+- в итоге отчёты были непредсказуемыми и могли противоречить факту.
 
-## Шаблон отчёта
+Правильный контракт:
+- **один скрипт** строит отчёт;
+- **один source snapshot** даёт входные данные;
+- если source snapshot отсутствует или невалиден → **`NO_REPLY`**;
+- `session_status` запрещён как source-of-truth.
 
-```text
-📊 ChatGPT Pro подписка: Отчёт по использованию
-- ⏱️ 5h window: осталось X% (≈Y)
-- 📆 Week window: осталось X%, до сброса ≈Y (дата/время МСК)
+## Что входит в skill
 
-🔮 Прогноз по неделе (линейная модель):
-- ориентировочное исчерпание: DD.MM.YYYY HH:MM МСК
+- `scripts/report.py` — единственный генератор отчёта
+- `state/source.schema.example.json` — пример source snapshot schema
+- `cron-job.example.json` — безопасный cron prompt, который требует запускать скрипт, а не сочинять отчёт
 
-⚠️ Вывод:
-- закончится до сброса / не закончится до сброса
+## Source contract
+
+Скрипт ждёт JSON snapshot с полями:
+
+```json
+{
+  "source": "manual_chatgpt_ui_capture",
+  "fetched_at": "2026-03-20T10:00:00+03:00",
+  "five_hour": {
+    "left_ratio": 0.92,
+    "reset_in_seconds": 7200
+  },
+  "week": {
+    "left_ratio": 0.77,
+    "reset_in_seconds": 380000
+  }
+}
 ```
 
-## Быстрый запуск (каждые 3 часа)
+### Важно
+- `source` должен быть **реальным** и отличным от `session_status` / `runtime_usage`.
+- Скрипт **жёстко отвергает** `session_status`, `openclaw_status`, `runtime_usage`.
+- Snapshot может быть записан любым внешним extractor’ом, но этот skill **не позволяет модели подменять extractor своей фантазией**.
 
-Используй `cron add` с payload kind `agentTurn` и delivery в Telegram DM.
+## Запуск
 
-Готовый пример — в файле `cron-job.example.json`.
+```bash
+python3 /opt/clawd-workspace/skills/public/chip-chatgpt-usage/scripts/report.py --format telegram
+```
 
-## Важно
+Если source snapshot отсутствует:
+- скрипт печатает `NO_REPLY`
 
-- Скилл **не хранит секреты**.
-- Источник данных — runtime usage метрики OpenClaw/провайдера модели.
-- Прогноз — приближённый (линейная модель), для операционного контроля, не финансовый SLA.
+Если source snapshot невалиден:
+- скрипт падает с ошибкой
+
+## Quick bootstrap
+
+Создать пример snapshot:
+
+```bash
+python3 /opt/clawd-workspace/skills/public/chip-chatgpt-usage/scripts/report.py init-example --force
+```
+
+Потом отредактировать `state/source.json` под реальный source.
+
+## Cron rule
+
+Cron не должен просить модель “сделай usage report”.
+Он должен требовать:
+1. запустить `report.py`;
+2. вернуть **строго stdout скрипта**;
+3. если stdout=`NO_REPLY`, ответить `NO_REPLY`;
+4. ничего не дописывать от себя.
+
+## Absolute rules
+
+- Нельзя использовать `session_status` как source-of-truth.
+- Нельзя подставлять synthetic numbers.
+- Нельзя идти в браузер, если skill запущен как script-first reporting pipeline.
+- Нельзя “объяснять, почему не получилось” вместо выполнения контракта; нужен stdout скрипта.

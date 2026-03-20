@@ -1,0 +1,12 @@
+{
+  "source": "manual_chatgpt_ui_capture",
+  "fetched_at": "2026-03-20T10:00:00+03:00",
+  "five_hour": {
+    "left_ratio": 0.92,
+    "reset_in_seconds": 7200
+  },
+  "week": {
+    "left_ratio": 0.77,
+    "reset_in_seconds": 380000
+  }
+}
